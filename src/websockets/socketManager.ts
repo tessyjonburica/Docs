@@ -19,7 +19,7 @@ export const initializeSocketServer = (server: http.Server) => {
   io.on('connection', (socket: Socket) => {
     console.log(`Socket connected: ${socket.id}`);
 
-    // Handle authentication
+
     socket.on('auth', (token: string) => {
       const payload = verifyToken(token);
       if (!payload) {
@@ -37,7 +37,6 @@ export const initializeSocketServer = (server: http.Server) => {
       socket.emit('authenticated', { user: (socket.data as any).user });
     });
 
-    // Handle joining a document room
     socket.on('join-document', async (data: { documentId: string }) => {
       const user = (socket.data as any).user as MinimalUser | undefined;
       if (!user) {
@@ -56,11 +55,10 @@ export const initializeSocketServer = (server: http.Server) => {
         activeUsers: Array.from(documentUsers.get(documentId) || []),
       });
 
-      // Initialize Yjs syncing handlers for this document
       await setupYjsHandlers(io, socket, documentId, user);
     });
 
-    // Handle leaving document
+   
     socket.on('leave-document', (data: { documentId: string }) => {
       const user = (socket.data as any).user as MinimalUser | undefined;
       if (!user) return;
@@ -76,7 +74,7 @@ export const initializeSocketServer = (server: http.Server) => {
       });
     });
 
-    // Handle disconnect cleanup
+    
     socket.on('disconnect', () => {
       const user = (socket.data as any).user as MinimalUser | undefined;
       if (!user) {

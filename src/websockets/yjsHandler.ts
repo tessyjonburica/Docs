@@ -5,7 +5,6 @@ import Document from '../models/document.model';
 
 const yDocs = new Map<string, Y.Doc>();
 
-// Get or create in-memory Yjs document
 const getOrCreateYDoc = async (documentId: string): Promise<Y.Doc> => {
   if (yDocs.has(documentId)) return yDocs.get(documentId)!;
 
@@ -45,11 +44,10 @@ export const setupYjsHandlers = async (
 ) => {
   const ydoc = await getOrCreateYDoc(documentId);
 
-  // Send initial document sync
+  // initial document sync
   const state = Y.encodeStateAsUpdate(ydoc);
   socket.emit('doc-sync', Array.from(state));
 
-  // When this client sends an update, apply & broadcast
   socket.on('doc-update', (updateArray: number[]) => {
     const update = new Uint8Array(updateArray);
     Y.applyUpdate(ydoc, update);
