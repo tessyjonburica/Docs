@@ -7,11 +7,11 @@ import {
   deleteDocument,
 } from '../controllers/document.controller';
 
-import { verifyToken } from '../utils/jwt.utils';
+import { protectGuard } from '../middlewares/auth.middleware';
 
 const documentRouter = express.Router();
 
-documentRouter.use(verifyToken);
+documentRouter.use(protectGuard);
 
 documentRouter.post('/new', createDocument);
 documentRouter.get('/get-all-docs', getDocuments);
