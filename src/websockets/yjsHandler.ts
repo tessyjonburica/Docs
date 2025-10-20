@@ -49,13 +49,13 @@ export const setupYjsHandlers = async (
   const state = Y.encodeStateAsUpdate(ydoc);
   socket.emit('doc-sync', Array.from(state));
 
-  // When this client sends an update, apply & broadcast
-  socket.on('doc-update', (updateArray: number[]) => {
+  socket.on('doc-update', (updateArray: number[], callback) => {
     const update = new Uint8Array(updateArray);
     Y.applyUpdate(ydoc, update);
 
-    // broadcast to others in same doc room
     socket.to(documentId).emit('doc-update', updateArray);
+
+    if (callback) callback({ status: true });
   });
 
   socket.on('disconnect', () => {

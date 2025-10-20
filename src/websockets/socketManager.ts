@@ -19,8 +19,7 @@ export const initializeSocketServer = (server: http.Server) => {
   io.on('connection', (socket: Socket) => {
     console.log(`Socket connected: ${socket.id}`);
 
-    // Handle authentication
-    socket.on('auth', (token: string) => {
+    socket.on('auth', (token: string, callback) => {
       const payload = verifyToken(token);
       if (!payload) {
         socket.emit('unauthorized', { message: 'Invalid or expired token' });
@@ -34,11 +33,11 @@ export const initializeSocketServer = (server: http.Server) => {
         role: payload.role,
       } as MinimalUser;
 
+      if (callback) callback({ status: true, user: (socket.data as any).user });
       socket.emit('authenticated', { user: (socket.data as any).user });
     });
 
-    // Handle joining a document room
-    socket.on('join-document', async (data: { documentId: string }) => {
+    socket.on('join-document', async (data: { documentId: string }, callback) => {
       const user = (socket.data as any).user as MinimalUser | undefined;
       if (!user) {
         socket.emit('error', { message: 'Unauthorized - please auth first' });
@@ -51,12 +50,13 @@ export const initializeSocketServer = (server: http.Server) => {
       if (!documentUsers.has(documentId)) documentUsers.set(documentId, new Set());
       documentUsers.get(documentId)!.add(user.id);
 
+      if (callback) callback({ status: true, activeUsers: Array.from(documentUsers.get(documentId) || []) });
+
       io.to(documentId).emit('user-joined', {
         userId: user.id,
         activeUsers: Array.from(documentUsers.get(documentId) || []),
       });
 
-      // Initialize Yjs syncing handlers for this document
       await setupYjsHandlers(io, socket, documentId, user);
     });
 
@@ -76,7 +76,6 @@ export const initializeSocketServer = (server: http.Server) => {
       });
     });
 
-    // Handle disconnect cleanup
     socket.on('disconnect', () => {
       const user = (socket.data as any).user as MinimalUser | undefined;
       if (!user) {
