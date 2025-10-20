@@ -31,7 +31,7 @@ export const createDocument = async (req: Request, res: Response) => {
 
 export const getDocuments = async (req: Request, res: Response) => {
     try {
-        const userId = req.params.id;
+        const userId = (req as any).user?.id;
 
         if (!userId) {
             return res.status(401).json({ status: false, message: 'Unauthorized' });
@@ -80,16 +80,15 @@ export const getDocumentById = async (req: Request, res: Response) => {
 
 export const updateDocument = async (req: Request, res: Response) => {
     try {
-
         const { content } = req.body;
-        const userId = req.params.id;
+        const { id: documentId } = req.params;
+        const userId = (req as any).user?.id;
 
-        if (!userId) {
+        if (!documentId || !userId) {
             return res.status(401).json({ status: false, message: 'Unauthorized' });
         }
 
-
-        const updated = await documentService.updateDocumentContent(userId, content, userId);
+        const updated = await documentService.updateDocumentContent(documentId, content, userId);
 
         return res.status(200).json({
             status: true,
