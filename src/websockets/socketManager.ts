@@ -60,7 +60,7 @@ export const initializeSocketServer = (server: http.Server) => {
       await setupYjsHandlers(io, socket, documentId, user);
     });
 
-    // Handle leaving document
+   
     socket.on('leave-document', (data: { documentId: string }) => {
       const user = (socket.data as any).user as MinimalUser | undefined;
       if (!user) return;
